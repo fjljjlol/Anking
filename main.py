@@ -4,16 +4,17 @@
 import docx
 import csv
 import pypandoc
+# import tqdm as tqdm
 import os
 
 from htmldocx import HtmlToDocx
-
 
 
 class Card:
     def __init__(self, text, extra):
         self.text = text
         self.extra = extra
+
 
 cards = []
 first = True
@@ -37,11 +38,12 @@ with open("/Users/michaelroth/Downloads/elpepe.txt") as file:
         cards.append(Card(line[3], line[4]))
 
 # 1 cleanse the text
+# print("Cleansing Text")
 for card in cards:
     card.text = card.text.replace("\"\"", "\"")
-    if card.text[0]== "\"":
+    if card.text[0] == "\"":
         card.text = card.text[1:]
-    if card.text[~0]=="\"":
+    if card.text[~0] == "\"":
         card.text = card.text[:-1]
     card.text = card.text.replace("<div>", "")
     card.text = card.text.replace("</div>", "")
@@ -49,11 +51,26 @@ for card in cards:
     card.text = card.text.replace("{{", "`{{")
     card.text = card.text.replace("}}", "}}`")
 
-    print(card.text)
+    # print(card.text)
+    # print(card.extra)
+    # print()
 
+# used to ensure first always has extra text
+isFirst = True
 
+# print("Cleansing Extras")
 for card in cards:
-    if(card.extra==""):
+    if(isFirst):
+        clone = card.extra
+        clone = clone.replace("<br>", "")
+        clone = clone.replace("<div>", "")
+        clone = clone.replace("</div>", "")
+        if len(clone) ==0:
+            card.extra = "."
+        isFirst = False
+
+
+    if (card.extra == ""):
         continue
 
     card.extra = card.extra.replace("\"\"", "\"")
@@ -64,40 +81,39 @@ for card in cards:
     card.extra = card.extra.replace("<div>", "")
     card.extra = card.extra.replace("</div>", "")
 
-    #only image checking
+    # only image checking
     clone = card.extra
-    if card.extra[0:4]=="<img" or card.extra[0:4]=="<br ":
+    if card.extra[0:4] == "<img" or card.extra[0:4] == "<br ":
         clone = clone.replace("<br />", "")
-        clone = clone[clone.find(">")+1:]
-        #if everything breaks, the bug is here (because img text img and the loop bellow will corrupt everything)
+        clone = clone.replace("<br>", "")
+        clone = clone[clone.find(">") + 1:]
+        # if everything breaks, the bug is here (because img text img and the loop bellow will corrupt everything)
 
         while clone.find("<img") != -1:
             clone = clone[clone.find(">") + 1:]
 
-        if len(clone)==0:
+        if len(clone) == 0:
             card.extra = "Extra <br>" + card.extra
-
+        # print("clone: "+clone)
 
     card.extra = "<div>" + card.extra + "</div>"
-    card.extra = card.extra.replace("img src=\"", "img src=\""+dirr)
+    card.extra = card.extra.replace("img src=\"", "img src=\"" + dirr)
     res = [i for i in range(len(card.extra)) if card.extra.startswith("src=", i)]
     spans = [i for i in range(len(card.extra)) if card.extra.startswith("<span", i)]
 
-
-    while(len(spans)>0):
+    while (len(spans) > 0):
         for s in spans:
             p1 = card.extra[0:s]
-            p2 = card.extra[s+1:]
-            p2 = p2[p2.index(">")+1:].replace("</span>", "", 1)
+            p2 = card.extra[s + 1:]
+            p2 = p2[p2.index(">") + 1:].replace("</span>", "", 1)
 
-            card.extra = p1+p2
+            card.extra = p1 + p2
             break
         spans = [i for i in range(len(card.extra)) if card.extra.startswith("<span", i)]
 
     # card.extra = card.extra.replace("<b style=\"font-style: italic; \">", "<b>")
 
     card.extra = card.extra.replace(" \"<", " &quot;<")
-
 
     if card.extra.find("<b style=\"font-style: italic; \">") != -1:
         card.extra = card.extra.replace("</b><i>", "")
@@ -110,14 +126,8 @@ for card in cards:
 
         # print(p1)
         # print(p2)
-        card.extra = p1+p2
+        card.extra = p1 + p2
         card.extra = card.extra.replace("michaelferrara", "")
-
-
-
-
-
-
 
     # images = []
     # notfound = []
@@ -140,9 +150,13 @@ for card in cards:
     # print(card.extra)
     # break;
 
+    # print(card.text)
+    # print(card.extra)
+    # print()
 
 out = open("outhtml.html", "w")
 out.write("<ul>")
+# Write cards
 for i, card in enumerate(cards):
     out.write("<li>")
     out.write(card.text)
@@ -159,8 +173,5 @@ out.close()
 # new_parser.parse_html_file("outhtml.html", "jb")
 
 
-output = pypandoc.convert_file(source_file='outhtml.html', format='html', to='docx', outputfile='/Users/michaelroth/Downloads/aanking.docx', extra_args=['-RTS'])
-
-
-
-
+output = pypandoc.convert_file(source_file='outhtml.html', format='html', to='docx',
+                               outputfile='/Users/michaelroth/Downloads/aanking.docx', extra_args=['-RTS'])
