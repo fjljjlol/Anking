@@ -22,7 +22,7 @@ first = True
 dirr = "/Users/michaelroth/AnkingImages/"
 
 # open .tsv file
-with open("/Users/michaelroth/Downloads/elpepe.txt") as file:
+with open("/Users/michaelroth/Downloads/elpepe.txt", errors='replace') as file:
     # Passing the TSV file to
     # reader() function
     # with tab delimiter
@@ -32,6 +32,8 @@ with open("/Users/michaelroth/Downloads/elpepe.txt") as file:
 
     # printing data line by line
     for line in tsv_file:
+        line[3] = line[3].replace("�", " ")
+        line[4] = line[4].replace("�", " ")
         if first:
             first = False
             continue
@@ -50,6 +52,27 @@ for card in cards:
     card.text = "<div>" + card.text + "</div>"
     card.text = card.text.replace("{{", "`{{")
     card.text = card.text.replace("}}", "}}`")
+
+    card.text = card.text.replace("<div style=\"centerbox\"><div class=\"mnemonics\">", "")
+
+    #TODO do the same thing to card.exta
+    divs = len([i for i in range(len(card.text)) if card.text.startswith("<div", i)])
+    closedivs = len([i for i in range(len(card.text)) if card.text.startswith("</div", i)])
+    for i in range(0, divs-closedivs):
+        card.text+="</div>"
+
+    # divs = [i for i in range(len(card.text)) if card.text.startswith("<div", i)]
+    # break tag after div tag deletion
+    # for div in divs:
+    #     close = card.text.find(">", div) + 1
+    #
+    #     if(card.text[close:close+4]=="<br>"):
+    #         card.text = card.text[:close] + card.text[close+4:]
+
+
+
+
+    #print(card.text)
 
     # print(card.text)
     # print(card.extra)
@@ -83,18 +106,20 @@ for card in cards:
 
     # only image checking
     clone = card.extra
-    if card.extra[0:4] == "<img" or card.extra[0:4] == "<br ":
-        clone = clone.replace("<br />", "")
-        clone = clone.replace("<br>", "")
+    clone = clone.replace("<br />", "")
+    clone = clone.replace("<br>", "")
+    clone = clone.replace("<i>", "")
+    clone = clone.replace("</i>", "")
+    if clone[0:4] == "<img" or clone[0:4] == "<br " or clone[0:4]==" <im":
         clone = clone[clone.find(">") + 1:]
         # if everything breaks, the bug is here (because img text img and the loop bellow will corrupt everything)
 
         while clone.find("<img") != -1:
             clone = clone[clone.find(">") + 1:]
 
+        clone = clone.replace(" ", "")
         if len(clone) == 0:
             card.extra = "Extra <br>" + card.extra
-        # print("clone: "+clone)
 
     card.extra = "<div>" + card.extra + "</div>"
     card.extra = card.extra.replace("img src=\"", "img src=\"" + dirr)
@@ -129,6 +154,8 @@ for card in cards:
         card.extra = p1 + p2
         card.extra = card.extra.replace("michaelferrara", "")
 
+
+
     # images = []
     # notfound = []
     #
@@ -157,6 +184,7 @@ for card in cards:
 out = open("outhtml.html", "w")
 out.write("<ul>")
 # Write cards
+num = len(cards)
 for i, card in enumerate(cards):
     out.write("<li>")
     out.write(card.text)
@@ -166,6 +194,8 @@ for i, card in enumerate(cards):
     out.write("</li>")
     out.write("</ul>")
     out.write("</li>")
+
+
 out.write("</ul>")
 out.close()
 
