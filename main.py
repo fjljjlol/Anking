@@ -1,42 +1,13 @@
-# Import docx
-#
-# NOT python-docx
-import csv
 import pypandoc
-# import tqdm as tqdm
-import os
+from card import *
+from user import *
+import yaml
 
-# from htmldocx import HtmlToDocx
+with open("config.yaml") as f:
+    config = yaml.load(f, Loader=yaml.FullLoader)[user]
 
+cards = get_cards(config['tsv'])
 
-class Card:
-    def __init__(self, text, extra):
-        self.text = text
-        self.extra = extra
-
-
-cards = []
-first = True
-
-dirr = "/Users/michaelroth/AnkingImages/"
-
-# open .tsv file
-with open("/Users/michaelroth/Downloads/elpepe.txt", errors='replace') as file:
-    # Passing the TSV file to
-    # reader() function
-    # with tab delimiter
-    # This function will
-    # read data from file
-    tsv_file = csv.reader(file, delimiter="\t")
-
-    # printing data line by line
-    for line in tsv_file:
-        line[3] = line[3].replace("�", " ")
-        line[4] = line[4].replace("�", " ")
-        if first:
-            first = False
-            continue
-        cards.append(Card(line[3], line[4]))
 
 # 1 cleanse the text
 # print("Cleansing Text")
@@ -67,6 +38,10 @@ for card in cards:
     #
     #     if(card.text[close:close+4]=="<br>"):
     #         card.text = card.text[:close] + card.text[close+4:]
+
+    #Cloze cleansing
+    card.clozure_bolding()
+
 
 
 
@@ -121,7 +96,7 @@ for card in cards:
             card.extra = "Extra <br>" + card.extra
 
     card.extra = "<div>" + card.extra + "</div>"
-    card.extra = card.extra.replace("img src=\"", "img src=\"" + dirr)
+    card.extra = card.extra.replace("img src=\"", "img src=\"" + config['images_dir'])
     res = [i for i in range(len(card.extra)) if card.extra.startswith("src=", i)]
     spans = [i for i in range(len(card.extra)) if card.extra.startswith("<span", i)]
 
@@ -203,4 +178,4 @@ out.close()
 
 
 output = pypandoc.convert_file(source_file='outhtml.html', format='html', to='docx',
-                               outputfile='/Users/michaelroth/Downloads/aanking.docx', extra_args=['-RTS'])
+                               outputfile=config['out_dir'], extra_args=['-RTS'])
