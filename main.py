@@ -1,13 +1,12 @@
 # Import docx
 #
 # NOT python-docx
-import docx
 import csv
 import pypandoc
 # import tqdm as tqdm
 import os
 
-from htmldocx import HtmlToDocx
+# from htmldocx import HtmlToDocx
 
 
 class Card:
